@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+  <head>
+	<link rel="stylesheet" href="style.css" type="text/css" />
+	<script>
+		var s = {
+			//settings class
+			rows: 10,
+			cols: 10,
+			width: 30,
+			height: 30,
+			fps: 30
+		},
+		//context, c.
+		c,
+		bombs = [],
+		clickedBoxes = [];
+		
+		window.onload = () => {
+			var canvas = document.getElementById("gCanvas");
+			c = canvas.getContext("2d");
+			
+			init();
+		};
+		
+		var mX, mY, clickedX, clickedY;
+		window.onclick = (e) => {
+			mX = e.pageX;
+			mY = e.pageY;
+			
+			if(
+			Math.floor(mX/s.width) < s.cols && 
+			Math.floor(mY/s.height) < s.rows) {
+				clickedX = Math.floor(mX/s.width);
+				clickedY = Math.floor(mY/s.height);
+			}
+			console.log(clickedX, clickedY);
+			
+			//cross-reference clickedX & clickedY with bombs array:
+			var clickedBomb = false;
+			for(var i = 0; i < 10; i++) {
+				if(clickedX == bombs[i][0] && clickedY == bombs[i][1]) {
+					clickedBomb = true;	
+					lose();
+				}
+			}
+			
+			if(!clickedBomb) {
+				clickPass(); 
+			}
+		}
+		
+		var box,
+		num,
+		zero,
+		init = () => {
+			box = new Image();
+			num = new Image();
+			zero = new Image();
+			box.src="images/box.png";
+			num.src="images/num.png";
+			zero.src="images/zero.png";
+			//10 bombs randomly generated: for use across the board.
+			for (var i = 0; i<10; i++) {
+				bombs[i] = [
+					Math.floor(Math.random()*10),
+					Math.floor(Math.random()*10)
+				];
+			}
+			box.onload = () => {
+				drawCanvas();
+			};
+		}, 
+		drawCanvas = () => {
+			c.clearRect(0,0,400,400);
+			for(let i = 0; i < s.rows; i++) {
+				for(let n = 0; n < s.cols; n++) {
+					var x = n * s.width, 
+					y = i * s.height;
+					
+					var beenClicked = [0, false];
+					
+					if(clickedBoxes.length > 0) {
+						for(k = 0; k<clickedBoxes.length; k++) {
+							if(clickedBoxes[k][0] == n && clickedBoxes[k][1] == i) {
+								beenClicked = [k, true];
+							}
+						}
+					}
+					
+					if(beenClicked[1]) {
+						if(clickedBoxes[(beenClicked[0])][2] > 0) {
+							c.drawImage(num, x, y);
+						} else {
+							c.drawImage(zero, x, y);
+						}
+					} else {
+						c.drawImage(box, x, y);
+					}
+					
+					
+				}
+			}
+		},
+		clickPass = () => {
+			var boxesToCheck = [
+				[-1,-1],
+				[0, -1],
+				[1, -1],
+				[1, 0],
+				[1, 1],
+				[0, 1],
+				[-1, 1],
+				[-1, 0]
+			],
+			numOfBombsSorrounding = 0;
+			
+			for(i in boxesToCheck) {
+				for( var n = 0; n < 10; n++) {
+					if(checkBomb(n, clickedX + boxesToCheck[i][0], clickedY + boxesToCheck[i][1]) == true) {
+						numOfBombsSorrounding++;
+					};
+				}
+			}
+			
+			clickedBoxes[(clickedBoxes.length)] = [clickedX, clickedY, numOfBombsSorrounding];
+			drawCanvas();
+		},
+		checkBomb = (i, x, y) => {
+			if(bombs[i][0] == x && bombs[i][1] == y) {
+				return true;
+			} else {
+				return false;
+			}
+		},
+		lose = () => {
+			
+		};
+	</script>
+	<title>MineSweeper</title>
+  </head>
+  <body>
+	<div id="gameCanvas">
+		<canvas id="gCanvas" width="400" height="400"></canvas>
+	</div>
+	<!-- controls canvas -->
+	<div id="controls">
+	
+	</div>
+  </body>
+</html>
